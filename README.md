@@ -1,5 +1,3 @@
-# Basic Python QR Code Script
+# Create and print QR codes using python
 
-A script using the [qrcode](https://pypi.org/project/qrcode/) package to create images of the right size, with optional annotations, and print them using the [brother_ql](https://pypi.org/project/brother-ql/) package.
-
-TODO: this version solves my requirements fine, but qrcode can define the size itself.
+Some helper functions to create, annotate and print QR codes using [qrcode](https://pypi.org/project/qrcode/) and [brother_ql](https://pypi.org/project/brother-ql/). I'm sure this can be done more efficiently, but solves my requirements.

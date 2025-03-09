@@ -3,7 +3,7 @@ from brother_ql.conversion import convert
 from brother_ql.raster import BrotherQLRaster
 
 
-def send_image_to_printer(img, paper_name):
+def print_to_brother_ql(img, paper_name):
     """Send image to a wired Brother QL printer using `brother_ql`.
 
     Driver setup and paper sizes: https://pypi.org/project/brother-ql/

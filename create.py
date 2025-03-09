@@ -19,7 +19,7 @@ def create_qr_code(data, size):
     return qr_img
 
 
-def get_text_size(font, text):
+def get_displayed_text_size(font, text):
     """Find the xy size of the text when displayed with the font, in px."""
 
     img = Image.new(mode="RGB", size=(0, 0))
@@ -29,13 +29,13 @@ def get_text_size(font, text):
     return width, height
 
 
-def wrap_text(max_width, font, text):
+def wrap_text_to_displayed_width(max_width, font, text):
     """Split text into multiple lines based on a maximum width when displayed in the font."""
 
     line = ""
     lines = []
     for char in text:
-        if get_text_size(font, line + char)[0] <= max_width:
+        if get_displayed_text_size(font, line + char)[0] <= max_width:
             line += char
         else:
             lines.append(line)
@@ -50,7 +50,7 @@ def annotate_qr_code(qr_img, font, text):
     """Produce a new image with the text displayed below the QR code."""
 
     qr_width, qr_height = qr_img.size
-    text_width, text_height = get_text_size(font, text)
+    text_width, text_height = get_displayed_text_size(font, text)
 
     annotated_qr_img = Image.new(
         "RGB", (qr_width, qr_height + text_height), color="white"
@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     if args.annotate:
         font = ImageFont.truetype("arial.ttf", size=14)
-        text = wrap_text(qr_img.size[0], font, args.data)
+        text = wrap_text_to_displayed_width(qr_img.size[0], font, args.data)
         qr_img = annotate_qr_code(qr_img, font, text)
 
     if args.save:
