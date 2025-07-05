@@ -4,13 +4,17 @@ import qrcode
 from PIL import Image, ImageDraw, ImageFont
 
 
-def create_qr(data: str, width: int, annotation: str | None = None, font_size: int = 14) -> Image.Image:
+def create_qr(
+    data: str, width: int, annotation: str | None = None, font_size: int = 14
+) -> Image.Image:
+    """Create and annotate a QR code using some default formatting."""
     qr_img, num_boxes = generate_qr(data)
     qr_img = resize_qr(qr_img, width)
     if annotation:
-        qr_img = annotate_qr(
-            qr_img, annotation, font_size=font_size, padding=width / num_boxes
+        text_img = text_annotation(
+            width, annotation, font_size=font_size, padding=width / num_boxes
         )
+        qr_img = annotate_qr_img(qr_img, text_img)
     return qr_img
 
 
@@ -31,15 +35,18 @@ def resize_qr(qr_img: Image.Image, width: int):
     return qr_img.resize((width, width))
 
 
-def annotate_qr(
-    qr_img: Image.Image,
+def text_annotation(
+    width: int,
     text: str,
     font_ttf: str = "arial.ttf",
     font_size: int = 14,
     character_wrap: bool = True,
     padding: int | float = 0,
 ) -> Image.Image:
-    """Extend the image and add text below the QR code."""
+    """Create an image containing the annotation text.
+
+    Padding is applied to the left and right and botton because the QR code already pads the gap
+    """
 
     if padding < 0:
         raise ValueError("Padding must be non-negative")
@@ -47,26 +54,21 @@ def annotate_qr(
 
     font = _get_font(font_ttf, font_size)
 
-    qr_width, qr_height = qr_img.size
-
     if character_wrap:
-        text = _character_wrap(text, font, qr_width - (2 * padding))
+        text = _character_wrap(text, font, width - (2 * padding))
 
-    text_width, text_height = _get_displayed_text_size(font, text)
+    _, text_height = _get_displayed_text_size(font, text)
 
-    annotated_qr_img = Image.new(
-        "RGB", (qr_width, qr_height + text_height + padding), color="white"
-    )
-    annotated_qr_img.paste(qr_img, (0, 0))
+    annotated_qr_img = Image.new("RGB", (width, text_height + padding), color="white")
 
     # Draw each line of text center aligned
     draw = ImageDraw.Draw(annotated_qr_img)
-    y = qr_height  # below the QR image
+    y = 0
     for line in text.split("\n"):
-        text_width, text_height = _get_displayed_text_size(font, line)
-        x = (qr_width - text_width) // 2  # center aligned
+        line_width, line_height = _get_displayed_text_size(font, line)
+        x = (width - line_width) // 2  # center aligned
         draw.text((x, y), line, font=font, fill="black")
-        y += text_height + 4
+        y += line_height
 
     return annotated_qr_img
 
@@ -110,3 +112,33 @@ def _character_wrap(text: str, font: ImageFont.ImageFont, width: int) -> str:
     if line:
         lines.append(line.strip())
     return "\n".join(lines)
+
+
+def annotate_qr_img(
+    qr_img: Image.Image, annotation_img: Image.Image, padding: int | float = 0
+):
+    """Vertically combine the QR code image with an annotation image.
+
+    The annotation image can be padded to make it smaller than the full QR width.
+    """
+
+    if padding < 0:
+        raise ValueError("Padding must be non-negative")
+    padding = math.ceil(padding)
+
+    qr_width, qr_height = qr_img.size
+    orig_width, orig_height = annotation_img.size
+
+    available_width = qr_width - 2 * padding
+    aspect_ratio = orig_height / orig_width
+    new_height = round(available_width * aspect_ratio)
+
+    annotation_img = annotation_img.resize((available_width, new_height), Image.LANCZOS)
+
+    total_height = qr_height + new_height + 2 * padding
+    annotated_qr_img = Image.new("RGB", (qr_width, total_height), color="white")
+
+    annotated_qr_img.paste(qr_img, (0, 0))
+    annotated_qr_img.paste(annotation_img, (padding, qr_height + padding))
+
+    return annotated_qr_img

@@ -1,5 +1,13 @@
 from qrcodes import create
 
-# Use the helper function:
-qr_img = create.create_qr("www.example.com", 150, "Scan to visit\nwww.example.com")
-qr_img.show()
+# Using the create helper function with default formatting
+boxes_of_serial_numbers = [
+    ["abc", "def", "ghi"],
+    ["123", "456", "789"],
+]
+for i, box_contents in enumerate(boxes_of_serial_numbers):
+    data = ",".join(box_contents)
+    annotation = f"Contains:\n{"\n".join(box_contents)}"
+    label = create.create_qr(data, 150, annotation)
+    label.show()
+    label.save(f"box_{i}.png")
