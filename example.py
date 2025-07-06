@@ -7,7 +7,9 @@ boxes_of_serial_numbers = [
 ]
 for i, box_contents in enumerate(boxes_of_serial_numbers):
     data = ",".join(box_contents)
-    annotation = f"Contains:\n{"\n".join(box_contents)}"
-    label = create.create_qr(data, 150, annotation)
+    annotation = f"Box Contains:\n{"\n".join(box_contents)}"
+    label = create.create_qr(
+        data, 150, annotation, background="white", foreground="black"
+    )
     label.show()
     label.save(f"box_{i}.png")
